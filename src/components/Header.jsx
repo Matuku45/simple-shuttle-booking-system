@@ -1,39 +1,39 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
-const Header = ({ onChangeView }) => {
+const Header = ({ onSignUpClick, onLoginClick }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
-    { name: "Home", view: "home", color: "text-red-400", hover: "hover:text-red-300" },
-    { name: "Login", view: "login", color: "text-yellow-400", hover: "hover:text-yellow-300" },
-    { name: "Sign Up", view: "signup", color: "text-green-400", hover: "hover:text-green-300" },
-    { name: "Passenger", view: "passenger", color: "text-purple-400", hover: "hover:text-purple-300" },
-    { name: "Admin", view: "admin", color: "text-pink-400", hover: "hover:text-pink-300" },
-    { name: "About", view: "about", color: "text-blue-400", hover: "hover:text-blue-300" },
+    { name: "Home", path: "/" },
+ 
+   
+    { name: "About", path: "/about" },
+    { name: "Sign Up", path: "/signup" },
+    { name: "Login", path: "/login" },
   ];
 
   return (
     <header className="w-full bg-blue-900 text-white shadow sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 sm:px-6">
-        {/* Title */}
         <div className="text-xl sm:text-2xl font-bold tracking-wide">
           Shuttle Booking Pro
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Desktop navigation */}
+        <nav className="hidden md:flex items-center gap-4">
           {navItems.map((item) => (
-            <button
-              key={item.view}
-              onClick={() => onChangeView(item.view)}
-              className={`font-medium px-3 py-1 rounded transition-colors duration-200 ${item.color} ${item.hover}`}
+            <Link
+              key={item.path}
+              to={item.path}
+              className="px-3 py-1 font-medium hover:underline text-yellow-300"
             >
               {item.name}
-            </button>
+            </Link>
           ))}
         </nav>
 
-        {/* Mobile Menu Toggle */}
+        {/* Mobile menu toggle */}
         <div className="md:hidden">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -44,20 +44,18 @@ const Header = ({ onChangeView }) => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile navigation */}
       {mobileOpen && (
-        <div className="md:hidden bg-blue-800 shadow-md">
+        <div className="md:hidden flex flex-col bg-blue-800 px-4 py-2 gap-2">
           {navItems.map((item) => (
-            <button
-              key={item.view}
-              onClick={() => {
-                onChangeView(item.view);
-                setMobileOpen(false);
-              }}
-              className={`block w-full text-left px-4 py-2 font-medium ${item.color} ${item.hover} transition-colors duration-200`}
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setMobileOpen(false)}
+              className="block w-full text-left text-yellow-300 font-medium hover:underline px-2 py-1"
             >
               {item.name}
-            </button>
+            </Link>
           ))}
         </div>
       )}

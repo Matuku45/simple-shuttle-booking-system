@@ -22,16 +22,17 @@ function App() {
           onLoginClick={() => setShowLogin(true)}
         />
 
-        {/* Main Routes */}
         <main className="flex-grow p-4">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/passenger" element={<PassengerDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<Login />} />
           </Routes>
 
-          {/* Sign Up / Login Popups */}
+          {/* Optional popups */}
           {showSignUp && <SignUp onClose={() => setShowSignUp(false)} />}
           {showLogin && <Login onClose={() => setShowLogin(false)} />}
         </main>
