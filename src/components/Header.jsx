@@ -1,87 +1,66 @@
-import React from 'react';
-import logo from './imgs/logo.jpg';
+import React, { useState } from "react";
 
-const Header = ({ onAboutClick, onSignUpClick, onSignInClick }) => {
-  const headerStyle = {
-    width: '100%',
-    backgroundColor: '#1d4ed8',
-    color: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  };
+const Header = ({ onChangeView }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const containerStyle = {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 24px',
-  };
-
-  const navStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '24px',
-  };
-
-  const navLinkStyle = {
-    textDecoration: 'none',
-    color: 'white',
-    fontWeight: '500',
-    fontSize: '1rem',
-    transition: 'color 0.2s',
-  };
-
-  const buttonStyle = {
-    backgroundColor: 'white',
-    color: '#1d4ed8',
-    fontWeight: '600',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    marginLeft: '12px',
-    textDecoration: 'none',
-    fontSize: '1rem',
-  };
+  const navItems = [
+    { name: "Home", view: "home", color: "text-red-400", hover: "hover:text-red-300" },
+    { name: "Login", view: "login", color: "text-yellow-400", hover: "hover:text-yellow-300" },
+    { name: "Sign Up", view: "signup", color: "text-green-400", hover: "hover:text-green-300" },
+    { name: "Passenger", view: "passenger", color: "text-purple-400", hover: "hover:text-purple-300" },
+    { name: "Admin", view: "admin", color: "text-pink-400", hover: "hover:text-pink-300" },
+    { name: "About", view: "about", color: "text-blue-400", hover: "hover:text-blue-300" },
+  ];
 
   return (
-    <header style={headerStyle}>
-      <div style={containerStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={logo} alt="Logo" style={{ height: '44px', borderRadius: '8px', background: '#fff', padding: '2px' }} />
-          <span style={{ fontWeight: 'bold', fontSize: '1.3rem', letterSpacing: '1px' }}>Shuttle Booking Pro</span>
+    <header className="w-full bg-blue-900 text-white shadow sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 sm:px-6">
+        {/* Title */}
+        <div className="text-xl sm:text-2xl font-bold tracking-wide">
+          Shuttle Booking Pro
         </div>
-        <nav style={navStyle}>
-          <a href="/" style={navLinkStyle}>Home</a>
-          <a href="#" style={navLinkStyle} onClick={e => { e.preventDefault(); onAboutClick(); }}>About</a>
-          <a href="/contact" style={navLinkStyle}>Contact</a>
-          <a href="/support" style={navLinkStyle}>Support</a>
-          <a
-            href="#"
-            style={buttonStyle}
-            onClick={e => {
-              e.preventDefault();
-              if (onSignUpClick) onSignUpClick();
-            }}
-          >
-            Create Account
-          </a>
-          <a
-            href="#"
-            style={buttonStyle}
-            onClick={e => {
-              e.preventDefault();
-              if (onSignInClick) onSignInClick();
-            }}
-          >
-            Sign In
-          </a>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          {navItems.map((item) => (
+            <button
+              key={item.view}
+              onClick={() => onChangeView(item.view)}
+              className={`font-medium px-3 py-1 rounded transition-colors duration-200 ${item.color} ${item.hover}`}
+            >
+              {item.name}
+            </button>
+          ))}
         </nav>
+
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="text-white text-3xl focus:outline-none"
+          >
+            {mobileOpen ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Navigation */}
+      {mobileOpen && (
+        <div className="md:hidden bg-blue-800 shadow-md">
+          {navItems.map((item) => (
+            <button
+              key={item.view}
+              onClick={() => {
+                onChangeView(item.view);
+                setMobileOpen(false);
+              }}
+              className={`block w-full text-left px-4 py-2 font-medium ${item.color} ${item.hover} transition-colors duration-200`}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
+      )}
     </header>
   );
 };

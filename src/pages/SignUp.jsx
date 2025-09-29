@@ -1,10 +1,4 @@
-import React, { useState } from 'react';
-
-const bgImage =
-  "url('https://mdbcdn.b-cdn.net/img/Photos/new-templates/search-box/img4.webp')";
-
-const mainColor = "#1d4ed8"; // App primary color
-const accentColor = "#457b9d"; // Accent color
+import React, { useState } from "react";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -42,7 +36,6 @@ const SignUp = () => {
       setError("You must agree to the Terms of service.");
       return;
     }
-    // Simulate success (replace with actual API call)
     setSuccess("Account created successfully! You can now log in.");
     setForm({
       name: "",
@@ -55,216 +48,104 @@ const SignUp = () => {
 
   return (
     <section
+      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
       style={{
-        minHeight: "100vh",
-        backgroundImage: bgImage,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundImage:
+          "url('https://mdbcdn.b-cdn.net/img/Photos/new-templates/search-box/img4.webp')",
       }}
     >
-      <div
-        style={{
-          background: "linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)",
-          borderRadius: "18px",
-          boxShadow: "0 4px 24px rgba(69,123,157,0.10)",
-          padding: "32px 24px",
-          maxWidth: "420px",
-          width: "100%",
-        }}
-      >
-        <div className="text-center">
+      <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8 sm:p-10 w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-6">
           <img
             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
-            style={{ width: "185px" }}
             alt="logo"
+            className="w-36 mx-auto sm:w-44"
           />
-          <h4 className="mt-1 mb-5 pb-1">We are The Lotus Team</h4>
+          <h4 className="mt-2 text-gray-700 text-lg sm:text-xl font-semibold">
+            We are The Lotus Team
+          </h4>
         </div>
 
-        <h2
-          style={{
-            textTransform: "uppercase",
-            textAlign: "center",
-            marginBottom: "28px",
-            color: mainColor,
-            fontWeight: "bold",
-            letterSpacing: "1px",
-            fontSize: "2rem",
-          }}
-        >
+        <h2 className="text-center text-blue-800 font-bold text-xl sm:text-2xl uppercase mb-8">
           Create an account
         </h2>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "18px" }}>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Your Name"
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: `1px solid ${accentColor}`,
-                fontSize: "1rem",
-                outline: "none",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "18px" }}>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Your Email"
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: `1px solid ${accentColor}`,
-                fontSize: "1rem",
-                outline: "none",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "18px" }}>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Password"
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: `1px solid ${accentColor}`,
-                fontSize: "1rem",
-                outline: "none",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "18px" }}>
-            <input
-              type="password"
-              name="repeatPassword"
-              value={form.repeatPassword}
-              onChange={handleChange}
-              placeholder="Repeat your password"
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: `1px solid ${accentColor}`,
-                fontSize: "1rem",
-                outline: "none",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "18px",
-            }}
-          >
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Your Name"
+            className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {/* Email */}
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Your Email"
+            className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {/* Password */}
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {/* Repeat Password */}
+          <input
+            type="password"
+            name="repeatPassword"
+            value={form.repeatPassword}
+            onChange={handleChange}
+            placeholder="Repeat your password"
+            className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          {/* Terms Checkbox */}
+          <div className="flex items-center">
             <input
               type="checkbox"
               name="agree"
               checked={form.agree}
               onChange={handleChange}
               id="agree"
-              style={{ marginRight: "8px" }}
+              className="mr-2 w-4 h-4 text-blue-600 accent-blue-600"
             />
-            <label
-              htmlFor="agree"
-              style={{ fontSize: "0.98rem" }}
-            >
-              I agree all statements in{" "}
-              <a
-                href="#!"
-                style={{
-                  color: accentColor,
-                  textDecoration: "underline",
-                }}
-              >
+            <label htmlFor="agree" className="text-gray-700 text-sm sm:text-base">
+              I agree to the{" "}
+              <a href="#!" className="text-blue-600 underline">
                 Terms of service
               </a>
             </label>
           </div>
-          {error && (
-            <div
-              style={{
-                color: "#e63946",
-                marginBottom: "12px",
-                textAlign: "center",
-              }}
-            >
-              {error}
-            </div>
-          )}
-          {success && (
-            <div
-              style={{
-                color: "#38b000",
-                marginBottom: "12px",
-                textAlign: "center",
-              }}
-            >
-              {success}
-            </div>
-          )}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginBottom: "8px",
-            }}
+
+          {/* Error/Success messages */}
+          {error && <div className="text-red-600 text-center">{error}</div>}
+          {success && <div className="text-green-600 text-center">{success}</div>}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-lg hover:bg-blue-800 transition-colors duration-200 shadow-md"
           >
-            <button
-              type="submit"
-              style={{
-                background: mainColor,
-                color: "#fff",
-                fontWeight: "bold",
-                padding: "12px 32px",
-                borderRadius: "10px",
-                border: "none",
-                fontSize: "1.1rem",
-                cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(69,123,157,0.10)",
-                transition: "background 0.2s",
-              }}
-            >
-              Register
-            </button>
-          </div>
-          <p
-            style={{
-              textAlign: "center",
-              color: "#6c757d",
-              marginTop: "24px",
-              fontSize: "1rem",
-            }}
-          >
-            Have already an account?{" "}
-            <a
-              href="/login"
-              style={{
-                color: accentColor,
-                fontWeight: "bold",
-                textDecoration: "underline",
-              }}
-            >
-              Login here
-            </a>
-          </p>
+            Register
+          </button>
         </form>
+
+        <p className="text-center text-gray-600 mt-6 text-sm sm:text-base">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-600 font-semibold underline">
+            Login here
+          </a>
+        </p>
       </div>
     </section>
   );
