@@ -5,9 +5,7 @@ const Header = ({ onSignUpClick, onLoginClick }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
-    { name: "Home", path: "/" },
- 
-   
+    { name: "Home", path: "/" },   
     { name: "About", path: "/about" },
     { name: "Sign Up", path: "/signup" },
     { name: "Login", path: "/login" },

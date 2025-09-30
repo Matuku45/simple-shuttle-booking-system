@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-const initialShuttles = [
-  { id: 1, route: "Johannesburg → Polokwane", date: "2025-09-25", time: "05:30", duration: "6.5 hrs", pickup: "10 min", seats: 10, price: 350 },
-  { id: 2, route: "Pretoria → Durban", date: "2025-09-25", time: "08:00", duration: "3.2 hrs", pickup: "15 min", seats: 4, price: 400 }
-];
-
 const initialPayments = [
   { id: 1, passenger: "John Doe", shuttle: "Pretoria → Durban", amount: 800, status: "Paid" },
   { id: 2, passenger: "Jane Smith", shuttle: "Johannesburg → Polokwane", amount: 350, status: "Pending" }
@@ -19,7 +14,7 @@ const navLinks = [
 
 const AdminDashboard = () => {
   const [user, setUser] = useState({ name: "", email: "" });
-  const [shuttles, setShuttles] = useState(initialShuttles);
+  const [shuttles, setShuttles] = useState([]);
   const [payments] = useState(initialPayments);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(null);
@@ -31,22 +26,72 @@ const AdminDashboard = () => {
     if (loggedInAdmin) setUser({ name: loggedInAdmin.name, email: loggedInAdmin.email });
   }, []);
 
-  const handleAddShuttle = (e) => {
-    e.preventDefault();
-    setShuttles([...shuttles, { ...newShuttle, id: Date.now() }]);
+  
+
+// Add shuttle
+const handleAddShuttle = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch("http://localhost:3000/api/shuttles/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newShuttle),
+    });
+    const data = await res.json();
+
+    alert(data.message);
     setShowAdd(false);
     setNewShuttle({ route: "", date: "", time: "", duration: "", pickup: "", seats: "", price: "" });
-  };
 
-  const handleEditShuttle = (e) => {
-    e.preventDefault();
-    setShuttles(shuttles.map(s => s.id === showEdit.id ? { ...showEdit } : s));
+    // ✅ Refresh from DB
+    fetchShuttles();
+  } catch (err) {
+    console.error(err);
+    alert("Error creating shuttle. Please try again.");
+  }
+};
+
+// Edit shuttle
+const handleEditShuttle = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch(`http://localhost:3000/api/shuttles/${showEdit.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(showEdit),
+    });
+    const data = await res.json();
+
+    alert(data.message);
     setShowEdit(null);
-  };
 
-  const handleDeleteShuttle = (id) => {
-    if (window.confirm("Delete this shuttle?")) setShuttles(shuttles.filter(s => s.id !== id));
-  };
+    // ✅ Refresh from DB
+    fetchShuttles();
+  } catch (err) {
+    console.error(err);
+    alert("Error updating shuttle. Please try again.");
+  }
+};
+
+// Delete shuttle
+const handleDeleteShuttle = async (id) => {
+  if (!window.confirm("Delete this shuttle?")) return;
+  try {
+    const res = await fetch(`http://localhost:3000/api/shuttles/${id}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+
+    alert(data.message);
+
+    // ✅ Refresh from DB
+    fetchShuttles();
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting shuttle. Please try again.");
+  }
+};
+
 
   return (
     <section className="min-h-screen bg-slate-100 font-sans">
