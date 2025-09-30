@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- import navigate
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -6,12 +7,15 @@ const SignUp = () => {
     email: "",
     password: "",
     repeatPassword: "",
+    role: "",
     agree: false,
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate(); // <-- initialize navigate
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -22,28 +26,64 @@ const SignUp = () => {
     setSuccess("");
   };
 
-  const handleSubmit = (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.password || !form.repeatPassword) {
+
+    // Basic validation
+    if (!form.name || !form.email || !form.password || !form.repeatPassword || !form.role) {
       setError("Please fill in all fields.");
       return;
     }
+
     if (form.password !== form.repeatPassword) {
       setError("Passwords do not match.");
       return;
     }
+
     if (!form.agree) {
       setError("You must agree to the Terms of service.");
       return;
     }
-    setSuccess("Account created successfully! You can now log in.");
-    setForm({
-      name: "",
-      email: "",
-      password: "",
-      repeatPassword: "",
-      agree: false,
-    });
+
+    try {
+      const response = await fetch("http://localhost:3000/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccess(data.message);
+        setError("");
+        // Reset form
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          repeatPassword: "",
+          role: "",
+          agree: false,
+        });
+
+        // Redirect to login page after successful signup
+        navigate("/login");
+      } else {
+        setError(data.message || "Something went wrong");
+        setSuccess("");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again later.");
+      setSuccess("");
+    }
   };
 
   return (
@@ -55,7 +95,6 @@ const SignUp = () => {
       }}
     >
       <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8 sm:p-10 w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-6">
           <img
             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
@@ -72,7 +111,6 @@ const SignUp = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
           <input
             type="text"
             name="name"
@@ -81,7 +119,6 @@ const SignUp = () => {
             placeholder="Your Name"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {/* Email */}
           <input
             type="email"
             name="email"
@@ -90,7 +127,6 @@ const SignUp = () => {
             placeholder="Your Email"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {/* Password */}
           <input
             type="password"
             name="password"
@@ -99,7 +135,6 @@ const SignUp = () => {
             placeholder="Password"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {/* Repeat Password */}
           <input
             type="password"
             name="repeatPassword"
@@ -108,8 +143,17 @@ const SignUp = () => {
             placeholder="Repeat your password"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <select
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Role</option>
+            <option value="admin">Admin</option>
+            <option value="passenger">Passenger</option>
+          </select>
 
-          {/* Terms Checkbox */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -127,11 +171,9 @@ const SignUp = () => {
             </label>
           </div>
 
-          {/* Error/Success messages */}
           {error && <div className="text-red-600 text-center">{error}</div>}
           {success && <div className="text-green-600 text-center">{success}</div>}
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-lg hover:bg-blue-800 transition-colors duration-200 shadow-md"

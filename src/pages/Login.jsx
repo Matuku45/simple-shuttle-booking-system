@@ -1,23 +1,59 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import flightImage from "../components/imgs/flight.jpeg";
 
-const Login = ({ onSignUpClick, onForgotPasswordClick }) => {
-  const [form, setForm] = useState({ username: "", password: "", role: "booker" });
+const Login = ({ onForgotPasswordClick }) => {
+  const [form, setForm] = useState({ username: "", password: "", role: "passenger" });
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement login logic here
+    setError("");
+
+    if (!form.username || !form.password || !form.role) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Save user to localStorage for session persistence
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // Redirect based on role
+        if (data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/passenger");
+        }
+      } else {
+        setError(data.message || "Login failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again later.");
+    }
   };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-slate-100 p-5">
       <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-xl overflow-hidden shadow-lg">
-        
+
         {/* Left Side - Form */}
         <div className="flex-1 bg-white p-10 flex flex-col justify-center min-w-[280px]">
           <div className="text-center mb-8">
@@ -53,9 +89,11 @@ const Login = ({ onSignUpClick, onForgotPasswordClick }) => {
               onChange={handleChange}
               className="w-full p-3 border border-blue-400 rounded-lg bg-slate-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="booker">Booker</option>
-              <option value="organizer">Flight Organizer (Admin)</option>
+              <option value="passenger">Passenger</option>
+              <option value="admin">Admin</option>
             </select>
+
+            {error && <div className="text-red-600 text-center">{error}</div>}
 
             <button
               type="submit"
@@ -82,7 +120,7 @@ const Login = ({ onSignUpClick, onForgotPasswordClick }) => {
               <button
                 type="button"
                 className="border border-red-600 text-red-600 font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition"
-                onClick={onSignUpClick}
+                onClick={() => navigate("/signup")} // <-- Redirect to create account page
               >
                 Create new
               </button>
@@ -102,7 +140,7 @@ const Login = ({ onSignUpClick, onForgotPasswordClick }) => {
           <div className="bg-black bg-opacity-30 p-6 rounded-lg">
             <h3 className="mb-4 text-xl font-semibold">We are more than just a company</h3>
             <p>
-              Plan and book your trips easily. Whether you are a passenger or organizer, our shuttle booking system ensures a seamless experience.
+              Plan and book your trips easily. Whether you are a passenger or admin, our shuttle booking system ensures a seamless experience.
             </p>
           </div>
         </div>
