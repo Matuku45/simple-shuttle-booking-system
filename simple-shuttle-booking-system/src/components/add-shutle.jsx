@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AddShuttle from "../components/add-shutle";
-import TrackPayment from "../components/track-payment";
+import AddShuttle from "./components/add-shutle";
+import TrackPayment from "./components/track-payment";
 
 export default function ShuttleAdminDashboard() {
   const [activeTab, setActiveTab] = useState("shuttles"); // "shuttles" or "payments"
