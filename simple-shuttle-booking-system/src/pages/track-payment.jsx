@@ -1,9 +1,17 @@
 // C:\Users\Thabiso\Downloads\simple-shuttle-booking-system\simple-shuttle-booking-system\src\components\track-payment.jsx
-import React from "react";
+import React, { useState } from "react";
 
-export default function TrackPayment({ payments }) {
+export default function TrackPayment() {
+  // Dummy payment data
+  const [payments] = useState([
+    { id: 1, passenger: "John Doe", shuttle: "Pretoria → Durban", amount: 800, status: "Paid" },
+    { id: 2, passenger: "Jane Smith", shuttle: "Johannesburg → Polokwane", amount: 350, status: "Pending" },
+    { id: 3, passenger: "Alice Johnson", shuttle: "Cape Town → Stellenbosch", amount: 200, status: "Paid" },
+    { id: 4, passenger: "Bob Williams", shuttle: "Durban → Pietermaritzburg", amount: 150, status: "Pending" },
+  ]);
+
   return (
-    <section id="payments" className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto">
+    <section id="payments" className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto mt-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">Payments Tracker</h2>
       <div className="overflow-x-auto">
         <table className="w-full table-auto border-collapse border border-gray-300">
