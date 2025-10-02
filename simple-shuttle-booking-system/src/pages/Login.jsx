@@ -12,7 +12,7 @@ const Login = ({ onForgotPasswordClick }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
     setError("");
   };
 
@@ -36,11 +36,18 @@ const Login = ({ onForgotPasswordClick }) => {
       const data = await response.json();
 
       if (data.success) {
-        // Save user info in localStorage for session persistence
-        localStorage.setItem("user", JSON.stringify(data.user));
+        // Normalize user info for consistency in Dashboard
+        const userInfo = {
+          username: data.user.username || data.user.name || form.username,
+          email: data.user.email || form.username,
+          role: data.user.role || form.role,
+        };
+
+        // Save normalized user info in localStorage
+        localStorage.setItem("user", JSON.stringify(userInfo));
 
         // Redirect based on role
-        if (data.user.role === "admin") navigate("/admin");
+        if (userInfo.role === "admin") navigate("/admin");
         else navigate("/passenger");
       } else {
         setError(data.message || "Login failed.");
@@ -56,7 +63,6 @@ const Login = ({ onForgotPasswordClick }) => {
   return (
     <section className="min-h-screen flex items-center justify-center bg-slate-100 p-5">
       <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-xl overflow-hidden shadow-lg">
-
         {/* Left Side - Form */}
         <div className="flex-1 bg-white p-10 flex flex-col justify-center min-w-[280px]">
           <div className="text-center mb-8">
@@ -65,7 +71,9 @@ const Login = ({ onForgotPasswordClick }) => {
               alt="logo"
               className="w-40 h-40 object-cover rounded-xl shadow-md mx-auto mb-4"
             />
-            <h3 className="text-blue-700 mb-2 text-2xl font-semibold">Shuttle Booking System</h3>
+            <h3 className="text-blue-700 mb-2 text-2xl font-semibold">
+              Shuttle Booking System
+            </h3>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
 
@@ -101,7 +109,9 @@ const Login = ({ onForgotPasswordClick }) => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full ${loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"} text-white font-bold py-3 rounded-lg transition`}
+              className={`w-full ${
+                loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"
+              } text-white font-bold py-3 rounded-lg transition`}
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
@@ -138,17 +148,19 @@ const Login = ({ onForgotPasswordClick }) => {
           style={{
             backgroundImage: `linear-gradient(135deg, rgba(29,78,216,0.8), rgba(69,123,157,0.8)), url(${flightImage})`,
             backgroundSize: "cover",
-            backgroundPosition: "center"
+            backgroundPosition: "center",
           }}
         >
           <div className="bg-black bg-opacity-30 p-6 rounded-lg">
-            <h3 className="mb-4 text-xl font-semibold">We are more than just a company</h3>
+            <h3 className="mb-4 text-xl font-semibold">
+              We are more than just a company
+            </h3>
             <p>
-              Plan and book your trips easily. Whether you are a passenger or admin, our shuttle booking system ensures a seamless experience.
+              Plan and book your trips easily. Whether you are a passenger or
+              admin, our shuttle booking system ensures a seamless experience.
             </p>
           </div>
         </div>
-
       </div>
     </section>
   );

@@ -1,4 +1,3 @@
-// C:\Users\Thabiso\Downloads\simple-shuttle-booking-system\simple-shuttle-booking-system\src\components\AddShuttle.jsx
 import React, { useState, useEffect } from "react";
 
 export default function AddShuttle({ title = "Add Shuttle", onClose, onSubmit, initialData }) {
@@ -12,36 +11,85 @@ export default function AddShuttle({ title = "Add Shuttle", onClose, onSubmit, i
     price: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   // Pre-fill form if initialData is provided (for editing)
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData });
+      setFormData({
+        route: initialData.route || "",
+        date: initialData.date || "",
+        time: initialData.time || "",
+        duration: initialData.duration || "",
+        pickup: initialData.pickup || "",
+        seats: initialData.seats ?? "",
+        price: initialData.price ?? "",
+      });
     }
   }, [initialData]);
 
+  // Fixed handleChange: just store the value directly
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      seats: Number(formData.seats),
-      price: Number(formData.price),
-    });
-    // Reset form only if adding new shuttle
-    if (!initialData) {
-      setFormData({
-        route: "",
-        date: "",
-        time: "",
-        duration: "",
-        pickup: "",
-        seats: "",
-        price: "",
-      });
+    setLoading(true);
+    setError("");
+
+    try {
+      const payload = {
+        ...formData,
+        seats: Number(formData.seats),
+        price: Number(formData.price),
+      };
+
+      if (title.includes("Add")) {
+        const response = await fetch(
+          "https://shuttle-booking-system.fly.dev/api/shuttles/add",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (!response.ok) {
+          const resData = await response.json();
+          throw new Error(resData.message || "Failed to add shuttle");
+        }
+
+        const newShuttle = await response.json();
+        onSubmit(newShuttle);
+      } else {
+        // For editing
+        onSubmit(payload);
+      }
+
+      if (!initialData) {
+        setFormData({
+          route: "",
+          date: "",
+          time: "",
+          duration: "",
+          pickup: "",
+          seats: "",
+          price: "",
+        });
+      }
+
+      onClose();
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,6 +104,9 @@ export default function AddShuttle({ title = "Add Shuttle", onClose, onSubmit, i
           &times;
         </button>
         <h3 className="text-center text-gray-900 font-semibold text-2xl mb-6">{title}</h3>
+
+        {error && <p className="text-red-600 text-center mb-4">{error}</p>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {[
             { label: "Route", name: "route", type: "text", placeholder: "Pretoria → Durban" },
@@ -82,11 +133,15 @@ export default function AddShuttle({ title = "Add Shuttle", onClose, onSubmit, i
               />
             </div>
           ))}
+
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 w-full text-white font-semibold py-3 rounded-md transition"
+            disabled={loading}
+            className={`w-full text-white font-semibold py-3 rounded-md transition ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            {title.includes("Add") ? "Add Shuttle" : "Save Changes"}
+            {loading ? "Processing..." : title.includes("Add") ? "Add Shuttle" : "Save Changes"}
           </button>
         </form>
       </div>
