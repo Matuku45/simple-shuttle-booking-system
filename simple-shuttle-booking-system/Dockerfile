@@ -1,26 +1,20 @@
-# Use official node image as builder
-FROM node:18-alpine AS builder
+# Use Node 18
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copy source files
+# Copy all source files
 COPY . .
 
-# Build the app
+# Build the Vite app
 RUN npm run build
 
-# Use a lightweight server to serve the build output
-FROM nginx:alpine
-
-# Copy build output to nginx html folder
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the app (Fly.io sets $PORT automatically)
+CMD ["npm", "start"]

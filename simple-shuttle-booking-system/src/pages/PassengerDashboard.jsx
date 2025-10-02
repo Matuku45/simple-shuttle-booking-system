@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Payment from "../components/Payment";
+import Payment from "../components/payment";
 
 const BASE_URL = "https://shuttle-booking-system.fly.dev"; // Your backend
 
