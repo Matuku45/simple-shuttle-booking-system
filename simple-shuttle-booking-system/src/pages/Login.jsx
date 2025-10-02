@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import flightImage from "../components/imgs/flight.jpeg";
+import flightImage from "../components/imgs/flight.jpg";
 
 const Login = ({ onForgotPasswordClick }) => {
   const [form, setForm] = useState({ username: "", password: "", role: "passenger" });

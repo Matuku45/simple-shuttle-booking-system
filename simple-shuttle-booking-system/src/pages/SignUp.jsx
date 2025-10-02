@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // <-- import navigate
 
+
+const BASE_URL = 
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://shuttle-booking-system.fly.dev';
+
+
+    
+
 const SignUp = () => {
   const [form, setForm] = useState({
     name: "",
@@ -47,17 +56,16 @@ const SignUp = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/users/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          role: form.role,
-        }),
-      });
-
+const response = await fetch(`${BASE_URL}/users/create`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    name: form.name,
+    email: form.email,
+    password: form.password,
+    role: form.role,
+  }),
+});
       const data = await response.json();
 
       if (data.success) {
