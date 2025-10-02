@@ -149,6 +149,7 @@ const ShuttleAdminDashboard = () => {
           <a href="#all-shuttles" className="py-2 px-3 rounded hover:bg-gray-800 font-medium">Shuttles</a>
           <a href="#payments" className="py-2 px-3 rounded hover:bg-gray-800 font-medium">Payments</a>
           <a href="#payments" className="py-2 px-3 rounded hover:bg-gray-800 font-medium">Profile</a>
+          <a href="/login" className="mt-auto py-2 px-3 rounded bg-red-600 hover:bg-red-700 font-medium text-center">Logout</a>
         </nav>
         <div className="p-4 border-t border-gray-700 text-sm text-gray-400">
           &copy; {new Date().getFullYear()} Shuttle Admin
