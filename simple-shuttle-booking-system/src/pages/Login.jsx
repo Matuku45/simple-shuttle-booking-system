@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import flightImage from "../components/imgs/flight.jpg";
 
-const BASE_URL = "https://shuttle-booking-system.fly.dev"; // your deployed backend
+const BASE_URL = "https://shuttle-booking-system.fly.dev";
 
 const Login = ({ onForgotPasswordClick }) => {
   const [form, setForm] = useState({ username: "", password: "", role: "passenger" });
@@ -36,17 +36,12 @@ const Login = ({ onForgotPasswordClick }) => {
       const data = await response.json();
 
       if (data.success) {
-        // Normalize user info for consistency in Dashboard
         const userInfo = {
           username: data.user.username || data.user.name || form.username,
           email: data.user.email || form.username,
           role: data.user.role || form.role,
         };
-
-        // Save normalized user info in localStorage
         localStorage.setItem("user", JSON.stringify(userInfo));
-
-        // Redirect based on role
         if (userInfo.role === "admin") navigate("/admin");
         else navigate("/passenger");
       } else {
@@ -61,23 +56,23 @@ const Login = ({ onForgotPasswordClick }) => {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-slate-100 p-5">
-      <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-xl overflow-hidden shadow-lg">
+    <section className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-4">
+      <div className="flex flex-col md:flex-row w-full max-w-6xl rounded-xl overflow-hidden shadow-lg">
         {/* Left Side - Form */}
-        <div className="flex-1 bg-white p-10 flex flex-col justify-center min-w-[280px]">
-          <div className="text-center mb-8">
+        <div className="flex-1 bg-white p-6 sm:p-10 md:p-12 flex flex-col justify-center min-w-[280px]">
+          <div className="text-center mb-6 sm:mb-10">
             <img
               src={flightImage}
               alt="logo"
-              className="w-40 h-40 object-cover rounded-xl shadow-md mx-auto mb-4"
+              className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-xl shadow-md mx-auto mb-4"
             />
-            <h3 className="text-blue-700 mb-2 text-2xl font-semibold">
+            <h3 className="text-blue-700 mb-1 text-2xl sm:text-3xl font-semibold">
               Shuttle Booking System
             </h3>
-            <p className="text-gray-600">Sign in to your account</p>
+            <p className="text-gray-600 text-sm sm:text-base">Sign in to your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
             <input
               type="text"
               name="username"
@@ -129,7 +124,7 @@ const Login = ({ onForgotPasswordClick }) => {
               </a>
             </div>
 
-            <div className="text-center flex justify-center items-center gap-2 mt-2">
+            <div className="text-center flex flex-col sm:flex-row justify-center items-center gap-2 mt-2">
               <span>Don't have an account?</span>
               <button
                 type="button"
@@ -144,18 +139,18 @@ const Login = ({ onForgotPasswordClick }) => {
 
         {/* Right Side - Background Image */}
         <div
-          className="flex-1 relative min-w-[280px] flex items-center justify-center text-white p-8 text-center"
+          className="flex-1 relative min-w-[280px] flex items-center justify-center text-white p-6 sm:p-8"
           style={{
             backgroundImage: `linear-gradient(135deg, rgba(29,78,216,0.8), rgba(69,123,157,0.8)), url(${flightImage})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          <div className="bg-black bg-opacity-30 p-6 rounded-lg">
-            <h3 className="mb-4 text-xl font-semibold">
+          <div className="bg-black bg-opacity-30 p-6 rounded-lg max-w-full">
+            <h3 className="mb-4 text-lg sm:text-xl md:text-2xl font-semibold">
               We are more than just a company
             </h3>
-            <p>
+            <p className="text-sm sm:text-base md:text-lg">
               Plan and book your trips easily. Whether you are a passenger or
               admin, our shuttle booking system ensures a seamless experience.
             </p>

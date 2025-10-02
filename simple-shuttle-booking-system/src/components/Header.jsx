@@ -7,8 +7,6 @@ const Header = ({ onSignUpClick, onLoginClick }) => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/about" },
-    { name: "Passenger Dashboard", path: "/passenger" },  // added
-    { name: "Admin Dashboard", path: "/admin" },          // added
     { name: "Sign Up", path: "/signup" },
     { name: "Login", path: "/login" },
   ];

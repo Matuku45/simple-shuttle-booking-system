@@ -123,7 +123,7 @@ const PassengerDashboard = () => {
           <a href="#" className="py-2 px-3 rounded hover:bg-gray-800 transition font-medium">Bookings</a>
           <a href="#" className="py-2 px-3 rounded hover:bg-gray-800 transition font-medium">Profile</a>
           <a href="#" className="py-2 px-3 rounded hover:bg-gray-800 transition font-medium">Support</a>
-          <a href="#" className="py-2 px-3 rounded bg-red-600 hover:bg-red-700 transition text-white font-semibold">Logout</a>
+          <a href="/login" className="py-2 px-3 rounded bg-red-600 hover:bg-red-700 transition text-white font-semibold">Logout</a>
         </nav>
         <div className="p-4 border-t border-gray-700 text-sm text-gray-400">
           &copy; {new Date().getFullYear()} MetroShuttle
