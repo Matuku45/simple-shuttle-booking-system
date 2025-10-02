@@ -7,5 +7,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  server: { hmr: { overlay: true } },
+  server: {
+    host: "0.0.0.0",   // <--- bind to all interfaces
+    port: process.env.PORT || 3000,  // <--- Fly sets PORT dynamically
+    hmr: { overlay: true },
+  },
 });

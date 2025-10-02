@@ -1,12 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // <-- import navigate
+import { useNavigate } from "react-router-dom";
 
-
-const BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:3000"
-    : "https://shuttle-booking-system.fly.dev";
-
+const BASE_URL = "https://shuttle-booking-system.fly.dev";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -20,9 +15,9 @@ const SignUp = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigate = useNavigate(); // <-- initialize navigate
+  const [loading, setLoading] = useState(false); // <-- fix added
+  const navigate = useNavigate();
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -33,62 +28,59 @@ const SignUp = () => {
     setSuccess("");
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!form.name || !form.email || !form.password || !form.repeatPassword || !form.role) {
-      setError("Please fill in all fields.");
+    if (!form.agree) {
+      setError("You must agree to the terms of service.");
       return;
     }
-
     if (form.password !== form.repeatPassword) {
       setError("Passwords do not match.");
       return;
     }
 
-    if (!form.agree) {
-      setError("You must agree to the Terms of service.");
-      return;
-    }
+    setError("");
+    setSuccess("");
+    setLoading(true);
 
     try {
-const response = await fetch(`${BASE_URL}/users/create`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: form.name,
-    email: form.email,
-    password: form.password,
-    role: form.role,
-  }),
-});
-      const data = await response.json();
+      const response = await fetch(`${BASE_URL}/users/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-      if (data.success) {
-        setSuccess(data.message);
-        setError("");
-        // Reset form
-        setForm({
-          name: "",
-          email: "",
-          password: "",
-          repeatPassword: "",
-          role: "",
-          agree: false,
-        });
+      const text = await response.text();
+      let data;
 
-        // Redirect to login page after successful signup
-        navigate("/login");
-      } else {
-        setError(data.message || "Something went wrong");
-        setSuccess("");
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Server returned non-JSON:", text);
+        setError("Server returned invalid response. Check backend URL.");
+        return;
       }
+
+      if (!response.ok) {
+        setError(data?.message || "Something went wrong!");
+        return;
+      }
+
+      setSuccess("Account created successfully!");
+      console.log("User created:", data);
+
+      // Optionally redirect after a delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err) {
-      console.error(err);
-      setError("Server error. Please try again later.");
-      setSuccess("");
+      console.error("Network or fetch error:", err);
+      setError("Cannot reach server. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,6 +116,7 @@ const response = await fetch(`${BASE_URL}/users/create`, {
             onChange={handleChange}
             placeholder="Your Name"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <input
             type="email"
@@ -132,6 +125,7 @@ const response = await fetch(`${BASE_URL}/users/create`, {
             onChange={handleChange}
             placeholder="Your Email"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <input
             type="password"
@@ -140,6 +134,7 @@ const response = await fetch(`${BASE_URL}/users/create`, {
             onChange={handleChange}
             placeholder="Password"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <input
             type="password"
@@ -148,12 +143,14 @@ const response = await fetch(`${BASE_URL}/users/create`, {
             onChange={handleChange}
             placeholder="Repeat your password"
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <select
             name="role"
             value={form.role}
             onChange={handleChange}
             className="w-full p-3 border border-blue-400 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+            required
           >
             <option value="">Select Role</option>
             <option value="admin">Admin</option>
@@ -182,9 +179,12 @@ const response = await fetch(`${BASE_URL}/users/create`, {
 
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-lg hover:bg-blue-800 transition-colors duration-200 shadow-md"
+            disabled={loading}
+            className={`w-full ${
+              loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"
+            } text-white font-bold py-3 rounded-xl text-lg transition-colors duration-200 shadow-md`}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 

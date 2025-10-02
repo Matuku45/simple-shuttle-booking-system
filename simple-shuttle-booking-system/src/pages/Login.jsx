@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import flightImage from "../components/imgs/flight.jpg";
 
+const BASE_URL = "https://shuttle-booking-system.fly.dev"; // your deployed backend
+
 const Login = ({ onForgotPasswordClick }) => {
   const [form, setForm] = useState({ username: "", password: "", role: "passenger" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -15,15 +18,16 @@ const Login = ({ onForgotPasswordClick }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
     if (!form.username || !form.password || !form.role) {
       setError("Please fill in all fields.");
       return;
     }
 
+    setLoading(true);
+    setError("");
+
     try {
-      const response = await fetch("http://localhost:3000/users/login", {
+      const response = await fetch(`${BASE_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -32,21 +36,20 @@ const Login = ({ onForgotPasswordClick }) => {
       const data = await response.json();
 
       if (data.success) {
-        // Save user to localStorage for session persistence
+        // Save user info in localStorage for session persistence
         localStorage.setItem("user", JSON.stringify(data.user));
 
         // Redirect based on role
-        if (data.user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/passenger");
-        }
+        if (data.user.role === "admin") navigate("/admin");
+        else navigate("/passenger");
       } else {
         setError(data.message || "Login failed.");
       }
     } catch (err) {
-      console.error(err);
-      setError("Server error. Please try again later.");
+      console.error("Login error:", err);
+      setError("Server unreachable. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,7 +75,7 @@ const Login = ({ onForgotPasswordClick }) => {
               name="username"
               value={form.username}
               onChange={handleChange}
-              placeholder="Phone number or email"
+              placeholder="Email"
               className="w-full p-3 border border-blue-400 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
@@ -97,12 +100,13 @@ const Login = ({ onForgotPasswordClick }) => {
 
             <button
               type="submit"
-              className="w-full bg-blue-700 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition"
+              disabled={loading}
+              className={`w-full ${loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"} text-white font-bold py-3 rounded-lg transition`}
             >
-              Sign In
+              {loading ? "Signing in..." : "Sign In"}
             </button>
 
-            <div className="text-center">
+            <div className="text-center mt-2">
               <a
                 href="#"
                 className="text-blue-500 underline"
@@ -115,12 +119,12 @@ const Login = ({ onForgotPasswordClick }) => {
               </a>
             </div>
 
-            <div className="text-center flex justify-center items-center gap-2">
+            <div className="text-center flex justify-center items-center gap-2 mt-2">
               <span>Don't have an account?</span>
               <button
                 type="button"
                 className="border border-red-600 text-red-600 font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition"
-                onClick={() => navigate("/signup")} // <-- Redirect to create account page
+                onClick={() => navigate("/signup")}
               >
                 Create new
               </button>
