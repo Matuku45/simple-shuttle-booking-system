@@ -2,13 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // <-- import navigate
 
 
-const BASE_URL = 
-  window.location.hostname === 'localhost'
-    ? 'http://localhost:3000'
-    : 'https://shuttle-booking-system.fly.dev';
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://shuttle-booking-system.fly.dev";
 
-
-    
 
 const SignUp = () => {
   const [form, setForm] = useState({
