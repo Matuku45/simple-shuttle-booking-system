@@ -16,5 +16,8 @@ COPY . .
 # Build the Vite app
 RUN npm run build
 
-# Start the app (Fly.io sets $PORT automatically)
+# Expose port
+EXPOSE 8080
+
+# Start the app
 CMD ["npm", "start"]
