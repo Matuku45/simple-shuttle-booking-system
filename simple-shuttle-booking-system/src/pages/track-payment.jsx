@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const BASE_URL = "https://shuttle-booking-system.fly.dev/api/payments";
 
-export default function TrackPayment() {
+export default function TrackPayment({ passengerName }) {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,8 +14,14 @@ export default function TrackPayment() {
         const res = await fetch(BASE_URL);
         if (!res.ok) throw new Error("Failed to fetch payments");
         const data = await res.json();
-        // Make sure to access the array correctly
-        setPayments(Array.isArray(data) ? data : data.payments || []);
+        const allPayments = Array.isArray(data) ? data : data.payments || [];
+
+        // Filter by logged-in passenger
+        const userPayments = allPayments.filter(
+          (p) => p.passenger_name === passengerName
+        );
+
+        setPayments(userPayments);
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -23,13 +29,16 @@ export default function TrackPayment() {
         setLoading(false);
       }
     };
-    fetchPayments();
-  }, []);
+
+    if (passengerName) fetchPayments();
+  }, [passengerName]);
 
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-ZA");
 
-  if (loading) return <p className="text-center py-4 text-gray-500">Loading payments...</p>;
-  if (error) return <p className="text-center py-4 text-red-500">{error}</p>;
+  if (loading)
+    return <p className="text-center py-4 text-gray-500">Loading payments...</p>;
+  if (error)
+    return <p className="text-center py-4 text-red-500">{error}</p>;
 
   return (
     <section className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto mt-6">
@@ -50,7 +59,7 @@ export default function TrackPayment() {
             {payments.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center text-gray-500 py-4">
-                  No payments recorded.
+                  No payments recorded for you.
                 </td>
               </tr>
             ) : (

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-
 const BASE_URL = "https://shuttle-booking-system.fly.dev";
 
 const ShuttleAdminDashboard = () => {
@@ -54,7 +53,10 @@ const ShuttleAdminDashboard = () => {
         const res = await fetch(`${BASE_URL}/api/payments`);
         if (!res.ok) throw new Error("Failed to fetch payments");
         const data = await res.json();
-        setPayments(Array.isArray(data) ? data : data.payments || []);
+        const allPayments = Array.isArray(data) ? data : data.payments || [];
+        // Filter only paid payments
+        const paidPayments = allPayments.filter((p) => p.status === "Paid");
+        setPayments(paidPayments);
       } catch (err) {
         setError(err.message);
       }
@@ -62,14 +64,12 @@ const ShuttleAdminDashboard = () => {
     fetchPayments();
   }, []);
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setError("");
   };
 
-  // Add Shuttle
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -95,7 +95,6 @@ const ShuttleAdminDashboard = () => {
     }
   };
 
-  // Edit Shuttle
   const handleEdit = (shuttle) => {
     setEditData(shuttle);
     setIsEditing(true);
@@ -122,7 +121,6 @@ const ShuttleAdminDashboard = () => {
     }
   };
 
-  // Delete Shuttle
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this shuttle?")) return;
     try {
@@ -159,11 +157,11 @@ const ShuttleAdminDashboard = () => {
 
       {/* Main Content */}
       <main className="flex flex-col flex-grow overflow-auto p-6 space-y-6">
-        {/* Add Shuttle */}
+        {/* Add/Edit Shuttle */}
         <section id="add-shuttle" className="bg-white p-6 rounded shadow">
           <h2 className="bg-yellow-400 text-black px-2 py-1 rounded hover:bg-yellow-500 font-bold">{isEditing ? "Edit Shuttle" : "Add Shuttle"}</h2>
           {error && <p className="text-red-600 font-medium">{error}</p>}
-          <form onSubmit={isEditing ? handleUpdate : handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={isEditing ? handleUpdate : handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             <input type="text" name="route" placeholder="Route" value={isEditing ? editData.route : formData.route} onChange={(e) => isEditing ? setEditData({...editData, route: e.target.value}) : handleChange(e)} required className="border border-gray-400 p-2 rounded"/>
             <input type="date" name="date" value={formData.date} onChange={handleChange} required className="border border-gray-400 p-2 rounded"/>
             <input type="time" name="time" value={formData.time} onChange={handleChange} required className="border border-gray-400 p-2 rounded"/>
@@ -209,11 +207,34 @@ const ShuttleAdminDashboard = () => {
 
         {/* Payments Section */}
         <section id="payments" className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">Payments</h2>
-          {payments.length === 0 ? <p>No payments available.</p> : (
-            <ul className="list-disc pl-5 text-black">
-              {payments.map((p, idx) => <li key={idx}>{p.details}</li>)}
-            </ul>
+          <h2 className="text-xl font-bold mb-4">Paid Payments</h2>
+          {payments.length === 0 ? (
+            <p>No paid payments available.</p>
+          ) : (
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2 border text-black">Passenger</th>
+                  <th className="p-2 border text-black">Shuttle ID</th>
+                  <th className="p-2 border text-black">Booking ID</th>
+                  <th className="p-2 border text-black">Amount (ZAR)</th>
+                  <th className="p-2 border text-black">Status</th>
+                  <th className="p-2 border text-black">Payment Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p, idx) => (
+                  <tr key={idx}>
+                    <td className="p-2 border text-black">{p.passenger_name}</td>
+                    <td className="p-2 border text-black">{p.shuttle_id}</td>
+                    <td className="p-2 border text-black">{p.booking_id}</td>
+                    <td className="p-2 border text-black">{p.amount}</td>
+                    <td className="p-2 border text-black">{p.status}</td>
+                    <td className="p-2 border text-black">{new Date(p.payment_date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </section>
       </main>
