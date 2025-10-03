@@ -16,7 +16,8 @@ const PassengerDashboard = () => {
   // Load logged-in user
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    if (loggedInUser && loggedInUser.name) setUser({ name: loggedInUser.name, email: loggedInUser.email });
+    if (loggedInUser && loggedInUser.name)
+      setUser({ name: loggedInUser.name, email: loggedInUser.email });
   }, []);
 
   // Fetch shuttles
@@ -66,8 +67,8 @@ const PassengerDashboard = () => {
   );
 
   // Handle booking confirmation
-  const handleConfirmBooking = (shuttle, seats) => {
-    const booking = { ...shuttle, seatsBooked: seats, paid: true };
+  const handleConfirmBooking = (shuttle, seats, paidAmount) => {
+    const booking = { ...shuttle, seatsBooked: seats, paid: true, paidAmount };
     setPaidBookings([...paidBookings, booking]);
     setBookingSuccess(
       `Booking confirmed for ${seats} seat(s) on ${shuttle.route} (${shuttle.time}, ${shuttle.date}).`
@@ -81,7 +82,7 @@ const PassengerDashboard = () => {
         passenger_name: user.name,
         shuttle_id: Number(shuttle.id),
         booking_id: Math.floor(Math.random() * 1000000),
-        amount: Math.round(Number(shuttle.price) * Number(seats)),
+        amount: Math.round(shuttle.price * seats),
         status: "Paid",
         payment_date: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -97,7 +98,7 @@ const PassengerDashboard = () => {
       console.log("Payment save response:", data);
 
       if (data.success) {
-        handleConfirmBooking(shuttle, seats);
+        handleConfirmBooking(shuttle, seats, shuttle.price);
       } else {
         console.error("Failed to save payment:", data);
         alert("Payment save failed: " + (data.message || "Unknown error"));
@@ -108,10 +109,11 @@ const PassengerDashboard = () => {
     }
   };
 
-  // Handle booking & payment inline
+  // Handle booking & open Stripe static payment
   const handleBookShuttle = (shuttle) => {
-    const paymentLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
-    const paymentWindow = window.open(paymentLink, "_blank");
+    // Predefined Stripe link for this shuttle (replace with real link)
+    const stripeLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
+    const paymentWindow = window.open(stripeLink, "_blank");
 
     const paymentCheck = setInterval(() => {
       if (paymentWindow.closed) {
@@ -203,7 +205,7 @@ const PassengerDashboard = () => {
                 <div className="text-blue-700 font-semibold text-lg md:text-xl">{b.route}</div>
                 <div className="text-sm text-gray-600">{b.date} • {b.time} • {b.duration}</div>
                 <div className="text-sm">Seats booked: {b.seatsBooked}</div>
-                <div className="text-green-600 font-bold mt-1">Total Paid: ZAR {b.price * b.seatsBooked}</div>
+                <div className="text-green-600 font-bold mt-1">Total Paid: ZAR {b.paidAmount * b.seatsBooked}</div>
               </div>
             ))}
           </section>
