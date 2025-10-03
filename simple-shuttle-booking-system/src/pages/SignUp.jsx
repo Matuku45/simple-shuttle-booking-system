@@ -15,7 +15,7 @@ const SignUp = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false); // <-- fix added
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -28,74 +28,62 @@ const SignUp = () => {
     setSuccess("");
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (form.password !== form.repeatPassword) {
-    setError("Passwords do not match");
-    return;
-  }
-  if (!form.agree) {
-    setError("You must agree to continue");
-    return;
-  }
-
-  setLoading(true);
-  setError("");
-  setSuccess("");
-
-  try {
-    const response = await fetch(`${BASE_URL}/users/create`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: form.role || "passenger", // default role
-      }),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => null);
-      throw new Error(errData?.message || `Server error: ${response.status}`);
+    if (form.password !== form.repeatPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (!form.agree) {
+      setError("You must agree to continue");
+      return;
     }
 
-    const data = await response.json();
-    console.log("✅ User created:", data);
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
-    setSuccess("Account created successfully!");
-    setForm({
-      name: "",
-      email: "",
-      password: "",
-      repeatPassword: "",
-      role: "",
-      agree: false,
-    });
+    try {
+      const response = await fetch(`${BASE_URL}/users/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role || "passenger",
+        }),
+      });
 
-    // Redirect to login after short delay
-    setTimeout(() => navigate("/login"), 1500);
-  } catch (err) {
-    console.error("❌ Signup error:", err);
-    setError(err.message || "Signup failed. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.message || `Server error: ${response.status}`);
+      }
 
+      setSuccess("Account created successfully!");
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        repeatPassword: "",
+        role: "",
+        agree: false,
+      });
 
+      setTimeout(() => navigate("/login"), 1500);
+    } catch (err) {
+      setError(err.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <section
-      className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
-      style={{
-        backgroundImage:
-          "url('https://mdbcdn.b-cdn.net/img/Photos/new-templates/search-box/img4.webp')",
-      }}
-    >
-      <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8 sm:p-10 w-full max-w-md">
-        <div className="text-center mb-6">
+    <div className="h-screen w-screen flex justify-center items-center bg-gradient-to-br from-blue-100 to-blue-200 p-4 overflow-auto">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 sm:p-10 flex flex-col gap-6">
+        {/* Logo */}
+        <div className="text-center">
           <img
             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
             alt="logo"
@@ -106,11 +94,13 @@ const handleSubmit = async (e) => {
           </h4>
         </div>
 
-        <h2 className="text-center text-blue-800 font-bold text-xl sm:text-2xl uppercase mb-8">
-          Create an account
+        {/* Title */}
+        <h2 className="text-center text-blue-800 font-bold text-xl sm:text-2xl uppercase mb-4">
+          Create an Account
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
             name="name"
@@ -190,14 +180,14 @@ const handleSubmit = async (e) => {
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-6 text-sm sm:text-base">
+        <p className="text-center text-gray-600 mt-4 text-sm sm:text-base">
           Already have an account?{" "}
           <a href="/login" className="text-blue-600 font-semibold underline">
             Login here
           </a>
         </p>
       </div>
-    </section>
+    </div>
   );
 };
 
