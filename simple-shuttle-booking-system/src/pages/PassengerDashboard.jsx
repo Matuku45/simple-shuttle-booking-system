@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import Payment from "../components/payment";
-import TrackPayment from "./track-payment"; // <-- import the payment tracker
+import TrackPayment from "./track-payment";
 
-const BASE_URL = "https://shuttle-booking-system.fly.dev"; // Your backend
+const BASE_URL = "https://shuttle-booking-system.fly.dev";
 
 const PassengerDashboard = () => {
-  const [user, setUser] = useState({ name: "", email: "" });
+  const [user, setUser] = useState({ name: "Passenger", email: "" });
   const [shuttles, setShuttles] = useState([]);
   const [seatsToBook, setSeatsToBook] = useState(1);
   const [bookingSuccess, setBookingSuccess] = useState("");
@@ -17,7 +16,7 @@ const PassengerDashboard = () => {
   // Load logged-in user
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    if (loggedInUser) setUser({ name: loggedInUser.name, email: loggedInUser.email });
+    if (loggedInUser && loggedInUser.name) setUser({ name: loggedInUser.name, email: loggedInUser.email });
   }, []);
 
   // Fetch shuttles
@@ -66,7 +65,7 @@ const PassengerDashboard = () => {
       (!search.seats || s.seats >= search.seats)
   );
 
-  // Handle booking confirmation after payment
+  // Handle booking confirmation
   const handleConfirmBooking = (shuttle, seats) => {
     const booking = { ...shuttle, seatsBooked: seats, paid: true };
     setPaidBookings([...paidBookings, booking]);
@@ -80,9 +79,9 @@ const PassengerDashboard = () => {
     try {
       const paymentData = {
         passenger_name: user.name,
-        shuttle_id: shuttle.id,
-        booking_id: Date.now(), // Use a unique ID or booking system ID
-        amount: shuttle.price * seats,
+        shuttle_id: Number(shuttle.id),
+        booking_id: Math.floor(Math.random() * 1000000),
+        amount: Math.round(Number(shuttle.price) * Number(seats)),
         status: "Paid",
         payment_date: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -90,19 +89,37 @@ const PassengerDashboard = () => {
 
       const res = await fetch(`${BASE_URL}/api/payments/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(paymentData),
       });
 
       const data = await res.json();
+      console.log("Payment save response:", data);
+
       if (data.success) {
         handleConfirmBooking(shuttle, seats);
       } else {
-        console.error("Failed to save payment", data);
+        console.error("Failed to save payment:", data);
+        alert("Payment save failed: " + (data.message || "Unknown error"));
       }
     } catch (err) {
       console.error("Payment save error", err);
+      alert("Payment save error: " + err.message);
     }
+  };
+
+  // Handle booking & payment inline
+  const handleBookShuttle = (shuttle) => {
+    const paymentLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
+    const paymentWindow = window.open(paymentLink, "_blank");
+
+    const paymentCheck = setInterval(() => {
+      if (paymentWindow.closed) {
+        clearInterval(paymentCheck);
+        console.log("Stripe tab closed, saving payment...");
+        savePayment(shuttle, seatsToBook);
+      }
+    }, 1000);
   };
 
   return (
@@ -116,8 +133,8 @@ const PassengerDashboard = () => {
           <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-xl font-bold text-white mb-2">
             {user.name ? user.name[0].toUpperCase() : "P"}
           </div>
-          <div className="text-white font-bold text-lg">{user.name || "Passenger"}</div>
-          <div className="text-gray-400 text-sm">{user.email || "passenger@example.com"}</div>
+          <div className="text-white font-bold text-lg">{user.name}</div>
+          <div className="text-gray-400 text-sm">{user.email}</div>
         </div>
         <nav className="flex flex-col flex-grow p-4 space-y-3">
           <a href="#" className="py-2 px-3 rounded hover:bg-gray-800 transition font-medium">Dashboard</a>
@@ -133,37 +150,21 @@ const PassengerDashboard = () => {
 
       {/* Main Content */}
       <main className="flex flex-col flex-grow overflow-auto p-6 space-y-6">
+        {/* Booking Success Alert */}
+        {bookingSuccess && (
+          <div className="bg-green-100 text-green-800 border border-green-400 p-3 rounded-md mb-4">
+            {bookingSuccess}
+          </div>
+        )}
+
         {/* Search Section */}
         <section className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto">
           <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4">Find a Shuttle</h2>
           <div className="flex flex-wrap gap-4">
-            <input
-              type="date"
-              value={search.date}
-              onChange={(e) => setSearch({ ...search, date: e.target.value })}
-              className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="number"
-              min={1}
-              value={search.seats}
-              onChange={(e) => setSearch({ ...search, seats: Number(e.target.value) })}
-              className="flex-1 min-w-[100px] p-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="text"
-              placeholder="Origin"
-              value={search.origin}
-              onChange={(e) => setSearch({ ...search, origin: e.target.value })}
-              className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-            />
-            <input
-              type="text"
-              placeholder="Destination"
-              value={search.destination}
-              onChange={(e) => setSearch({ ...search, destination: e.target.value })}
-              className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-            />
+            <input type="date" value={search.date} onChange={(e) => setSearch({ ...search, date: e.target.value })} className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md" />
+            <input type="number" min={1} value={search.seats} onChange={(e) => setSearch({ ...search, seats: Number(e.target.value) })} className="flex-1 min-w-[100px] p-2 border border-gray-300 rounded-md" />
+            <input type="text" placeholder="Origin" value={search.origin} onChange={(e) => setSearch({ ...search, origin: e.target.value })} className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md" />
+            <input type="text" placeholder="Destination" value={search.destination} onChange={(e) => setSearch({ ...search, destination: e.target.value })} className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md" />
           </div>
         </section>
 
@@ -173,10 +174,7 @@ const PassengerDashboard = () => {
           {error && <p className="text-red-500">{error}</p>}
           {!error && filteredShuttles.length === 0 && <p className="text-gray-500">No shuttles match your search.</p>}
           {filteredShuttles.map((shuttle) => (
-            <div
-              key={shuttle.id}
-              className="border border-gray-200 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
-            >
+            <div key={shuttle.id} className="border border-gray-200 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center">
               <div>
                 <div className="text-blue-700 font-semibold text-lg md:text-xl">{shuttle.route}</div>
                 <div className="text-sm text-gray-600">{shuttle.date} • {shuttle.time} • {shuttle.duration}</div>
@@ -185,12 +183,12 @@ const PassengerDashboard = () => {
               </div>
               <div className="text-right mt-2 md:mt-0">
                 <div className="text-green-600 font-bold text-lg md:text-xl">ZAR {shuttle.price}</div>
-                {/* Stripe Payment Button */}
-                <Payment
-                  shuttle={shuttle}
-                  seats={seatsToBook}
-                  onPaymentSuccess={(seats) => savePayment(shuttle, seats)}
-                />
+                <button
+                  onClick={() => handleBookShuttle(shuttle)}
+                  className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                >
+                  Book
+                </button>
               </div>
             </div>
           ))}
@@ -211,7 +209,7 @@ const PassengerDashboard = () => {
           </section>
         )}
 
-        {/* Payment Tracker Section */}
+        {/* Payment Tracker */}
         <TrackPayment />
       </main>
     </div>

@@ -1,25 +1,29 @@
 import React from "react";
-import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe("your-publishable-key-here"); // Replace with your Stripe publishable key
-
-const Payment = ({ shuttle }) => {
+const Payment = ({ shuttle, seats, onPaymentSuccess }) => {
   const handleBook = async () => {
-    const stripe = await stripePromise;
-
-    // Ideally you call your backend to create a session and get sessionId, but
-    // since you have a Payment Link, just open it directly:
-
+    // Your Stripe Payment Link
     const paymentLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
 
-    // Open the payment link in a new tab/window
-    window.open(paymentLink, "_blank");
+    // Open Stripe checkout in a new tab
+    const paymentWindow = window.open(paymentLink, "_blank");
+
+    // Polling to detect if the payment window is closed
+    const paymentCheck = setInterval(() => {
+      if (paymentWindow.closed) {
+        clearInterval(paymentCheck);
+        console.log("Stripe tab closed, calling onPaymentSuccess");
+
+        // Pass both shuttle and seats so dashboard can save correctly
+        onPaymentSuccess(shuttle, seats);
+      }
+    }, 1000);
   };
 
   return (
     <button
       onClick={handleBook}
-      className="mt-2 bg-red-600 text-blue-100 px-4 py-2 rounded hover:bg-red-700 transition"
+      className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
     >
       Book
     </button>

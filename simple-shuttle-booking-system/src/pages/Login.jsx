@@ -36,12 +36,14 @@ const Login = ({ onForgotPasswordClick }) => {
       const data = await response.json();
 
       if (data.success) {
+        // Ensure name is saved for passenger dashboard
         const userInfo = {
-          username: data.user.username || data.user.name || form.username,
+          name: data.user.name || data.user.username || form.username,
           email: data.user.email || form.username,
           role: data.user.role || form.role,
         };
         localStorage.setItem("user", JSON.stringify(userInfo));
+
         if (userInfo.role === "admin") navigate("/admin");
         else navigate("/passenger");
       } else {
@@ -104,9 +106,7 @@ const Login = ({ onForgotPasswordClick }) => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full ${
-                loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"
-              } text-white font-bold py-3 rounded-lg transition`}
+              className={`w-full ${loading ? "bg-blue-400" : "bg-blue-700 hover:bg-blue-800"} text-white font-bold py-3 rounded-lg transition`}
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
