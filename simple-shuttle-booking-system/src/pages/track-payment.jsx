@@ -1,42 +1,67 @@
-// C:\Users\Thabiso\Downloads\simple-shuttle-booking-system\simple-shuttle-booking-system\src\components\track-payment.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+const BASE_URL = "https://shuttle-booking-system.fly.dev/api/payments";
 
 export default function TrackPayment() {
-  // Dummy payment data
-  const [payments] = useState([
-    { id: 1, passenger: "John Doe", shuttle: "Pretoria → Durban", amount: 800, status: "Paid" },
-    { id: 2, passenger: "Jane Smith", shuttle: "Johannesburg → Polokwane", amount: 350, status: "Pending" },
-    { id: 3, passenger: "Alice Johnson", shuttle: "Cape Town → Stellenbosch", amount: 200, status: "Paid" },
-    { id: 4, passenger: "Bob Williams", shuttle: "Durban → Pietermaritzburg", amount: 150, status: "Pending" },
-  ]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(BASE_URL);
+        if (!res.ok) throw new Error("Failed to fetch payments");
+        const data = await res.json();
+        // Make sure to access the array correctly
+        setPayments(Array.isArray(data) ? data : data.payments || []);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch payments. Please try again later.");
+        setLoading(false);
+      }
+    };
+    fetchPayments();
+  }, []);
+
+  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-ZA");
+
+  if (loading) return <p className="text-center py-4 text-gray-500">Loading payments...</p>;
+  if (error) return <p className="text-center py-4 text-red-500">{error}</p>;
 
   return (
-    <section id="payments" className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto mt-6">
+    <section className="bg-white rounded-lg shadow p-6 max-w-7xl mx-auto mt-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">Payments Tracker</h2>
       <div className="overflow-x-auto">
         <table className="w-full table-auto border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200 text-gray-700">
               <th className="border border-gray-300 px-4 py-2 text-left">Passenger</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Shuttle</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Shuttle ID</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Booking ID</th>
               <th className="border border-gray-300 px-4 py-2 text-right">Amount (ZAR)</th>
               <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
             </tr>
           </thead>
           <tbody>
             {payments.length === 0 ? (
               <tr>
-                <td colSpan="4" className="text-center text-gray-500 py-4">
+                <td colSpan="6" className="text-center text-gray-500 py-4">
                   No payments recorded.
                 </td>
               </tr>
             ) : (
               payments.map((payment) => (
                 <tr key={payment.id} className="even:bg-gray-50">
-                  <td className="border border-gray-300 px-4 py-2">{payment.passenger}</td>
-                  <td className="border border-gray-300 px-4 py-2">{payment.shuttle}</td>
+                  <td className="border border-gray-300 px-4 py-2">{payment.passenger_name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{payment.shuttle_id}</td>
+                  <td className="border border-gray-300 px-4 py-2">{payment.booking_id}</td>
                   <td className="border border-gray-300 px-4 py-2 text-right">R {payment.amount}</td>
                   <td className="border border-gray-300 px-4 py-2">{payment.status}</td>
+                  <td className="border border-gray-300 px-4 py-2">{formatDate(payment.payment_date)}</td>
                 </tr>
               ))
             )}

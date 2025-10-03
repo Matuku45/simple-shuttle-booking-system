@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Payment from "../components/payment";
+import TrackPayment from "./track-payment"; // <-- import the payment tracker
 
 const BASE_URL = "https://shuttle-booking-system.fly.dev"; // Your backend
 
@@ -209,6 +210,9 @@ const PassengerDashboard = () => {
             ))}
           </section>
         )}
+
+        {/* Payment Tracker Section */}
+        <TrackPayment />
       </main>
     </div>
   );

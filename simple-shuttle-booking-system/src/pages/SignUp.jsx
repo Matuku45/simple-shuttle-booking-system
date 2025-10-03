@@ -28,61 +28,63 @@ const SignUp = () => {
     setSuccess("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!form.agree) {
-      setError("You must agree to the terms of service.");
-      return;
+  if (form.password !== form.repeatPassword) {
+    setError("Passwords do not match");
+    return;
+  }
+  if (!form.agree) {
+    setError("You must agree to continue");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    const response = await fetch(`${BASE_URL}/users/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role || "passenger", // default role
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      throw new Error(errData?.message || `Server error: ${response.status}`);
     }
-    if (form.password !== form.repeatPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
 
-    setError("");
-    setSuccess("");
-    setLoading(true);
+    const data = await response.json();
+    console.log("✅ User created:", data);
 
-    try {
-      const response = await fetch(`${BASE_URL}/users/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+    setSuccess("Account created successfully!");
+    setForm({
+      name: "",
+      email: "",
+      password: "",
+      repeatPassword: "",
+      role: "",
+      agree: false,
+    });
 
-      const text = await response.text();
-      let data;
+    // Redirect to login after short delay
+    setTimeout(() => navigate("/login"), 1500);
+  } catch (err) {
+    console.error("❌ Signup error:", err);
+    setError(err.message || "Signup failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error("Server returned non-JSON:", text);
-        setError("Server returned invalid response. Check backend URL.");
-        return;
-      }
 
-      if (!response.ok) {
-        setError(data?.message || "Something went wrong!");
-        return;
-      }
-
-      setSuccess("Account created successfully!");
-      console.log("User created:", data);
-
-      // Optionally redirect after a delay
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    } catch (err) {
-      console.error("Network or fetch error:", err);
-      setError("Cannot reach server. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <section

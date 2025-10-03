@@ -3,13 +3,14 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
   server: {
-    host: "0.0.0.0",   // <--- bind to all interfaces
-    port: process.env.PORT || 3000,  // <--- Fly sets PORT dynamically
-    hmr: { overlay: true },
+    host: "0.0.0.0",      // listen on all interfaces
+    port: 5173,            // ✅ changed to 8080
+    hmr: {
+      overlay: true,
+      host: "localhost"    // fixes repeated restarts
+    },
+    allowedHosts: "all"    // allow any ngrok host
   },
 });
