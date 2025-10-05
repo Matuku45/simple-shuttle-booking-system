@@ -12,14 +12,15 @@ const PassengerDashboard = () => {
   const [countdowns, setCountdowns] = useState({});
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("book");
-  const [seatsSelection, setSeatsSelection] = useState({}); // store seats per shuttle
+  const [seatsSelection, setSeatsSelection] = useState({});
+  const [bookings, setBookings] = useState(JSON.parse(localStorage.getItem("bookings")) || []);
 
   // Load user
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
     if (loggedInUser && loggedInUser.name) {
-      setUser({ name: loggedInUser.name, email: loggedInUser.email });
-      setEditUser({ name: loggedInUser.name, email: loggedInUser.email });
+      setUser(loggedInUser);
+      setEditUser(loggedInUser);
     }
   }, []);
 
@@ -66,18 +67,59 @@ const PassengerDashboard = () => {
     alert("Profile updated successfully!");
   };
 
+  // Save booking locally
+  const addBookingLocal = (shuttle, seats) => {
+    const newBooking = {
+      id: Math.floor(Math.random() * 1000000),
+      shuttle_id: shuttle.id,
+      route: shuttle.route,
+      date: shuttle.date,
+      time: shuttle.time,
+      seats,
+      price: shuttle.price,
+    };
+    const updatedBookings = [...bookings, newBooking];
+    setBookings(updatedBookings);
+    localStorage.setItem("bookings", JSON.stringify(updatedBookings));
+    setBookingSuccess(
+      `Booking added locally for ${seats} seat(s) on ${shuttle.route} (${shuttle.time}, ${shuttle.date}).`
+    );
+  };
+
   // Booking handler
   const handleBookShuttle = (shuttle) => {
-    const seats = seatsSelection[shuttle.id] || 1; // default 1 seat
+    const seats = seatsSelection[shuttle.id] || 1;
+
+    // Save booking locally immediately
+    addBookingLocal(shuttle, seats);
+
+    // Open Stripe for payment
     const stripeLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
     const paymentWindow = window.open(stripeLink, "_blank");
 
     const paymentCheck = setInterval(() => {
       if (paymentWindow.closed) {
         clearInterval(paymentCheck);
-        setBookingSuccess(
-          `Booking confirmed for ${seats} seat(s) on ${shuttle.route} (${shuttle.time}, ${shuttle.date}).`
-        );
+
+        // Save payment after Stripe closes
+        const bookingId = bookings.length ? bookings[bookings.length - 1].id : new Date().getTime();
+        const paymentData = {
+          passenger_name: user.name,
+          shuttle_id: shuttle.id,
+          booking_id: bookingId,
+          amount: shuttle.price * seats,
+          status: "Paid",
+          payment_date: new Date().toISOString(),
+        };
+
+        fetch(`${BASE_URL}/api/payments/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(paymentData),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log("Payment saved:", data))
+          .catch((err) => console.error("Payment error:", err));
       }
     }, 1000);
   };
@@ -112,6 +154,14 @@ const PassengerDashboard = () => {
             }`}
           >
             🚍 Book Shuttles
+          </button>
+          <button
+            onClick={() => setActiveTab("bookings")}
+            className={`py-2 px-3 rounded-md font-semibold text-left transition ${
+              activeTab === "bookings" ? "bg-red-600 text-white" : "text-gray-200 hover:bg-gray-800"
+            }`}
+          >
+            🗒 My Bookings
           </button>
           <button
             onClick={() => setActiveTab("profile")}
@@ -231,6 +281,23 @@ const PassengerDashboard = () => {
               ))}
             </section>
           </>
+        )}
+
+        {/* MY BOOKINGS */}
+        {activeTab === "bookings" && (
+          <section className="bg-white rounded-lg shadow-md p-6 max-w-5xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">My Bookings</h2>
+            {bookings.length === 0 && <p className="text-gray-500">You have no bookings yet.</p>}
+            {bookings.map((b) => (
+              <div key={b.id} className="border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center">
+                <div>
+                  <div className="font-semibold text-lg">{b.route}</div>
+                  <div className="text-sm text-gray-600">{b.date} • {b.time}</div>
+                  <div className="text-sm text-gray-600">Seats: {b.seats} • Price: ZAR {b.price}</div>
+                </div>
+              </div>
+            ))}
+          </section>
         )}
 
         {/* PROFILE */}
