@@ -18,7 +18,7 @@ const PassengerDashboard = () => {
   // Load user
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    if (loggedInUser && loggedInUser.name) {
+    if (loggedInUser?.name) {
       setUser(loggedInUser);
       setEditUser(loggedInUser);
     }
@@ -60,7 +60,7 @@ const PassengerDashboard = () => {
     return () => clearInterval(interval);
   }, [shuttles]);
 
-  // Save profile
+  // Update profile
   const handleUpdateProfile = () => {
     setUser(editUser);
     localStorage.setItem("user", JSON.stringify(editUser));
@@ -76,32 +76,25 @@ const PassengerDashboard = () => {
       date: shuttle.date,
       time: shuttle.time,
       seats,
-      price: shuttle.price,
+      price: shuttle.price * seats,
     };
     const updatedBookings = [...bookings, newBooking];
     setBookings(updatedBookings);
     localStorage.setItem("bookings", JSON.stringify(updatedBookings));
-    setBookingSuccess(
-      `Booking added locally for ${seats} seat(s) on ${shuttle.route} (${shuttle.time}, ${shuttle.date}).`
-    );
+    setBookingSuccess(`Booking added for ${seats} seat(s) on ${shuttle.route} (${shuttle.time}, ${shuttle.date}).`);
   };
 
-  // Booking handler
+  // Book shuttle handler
   const handleBookShuttle = (shuttle) => {
     const seats = seatsSelection[shuttle.id] || 1;
-
-    // Save booking locally immediately
     addBookingLocal(shuttle, seats);
 
-    // Open Stripe for payment
     const stripeLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
     const paymentWindow = window.open(stripeLink, "_blank");
 
     const paymentCheck = setInterval(() => {
       if (paymentWindow.closed) {
         clearInterval(paymentCheck);
-
-        // Save payment after Stripe closes
         const bookingId = bookings.length ? bookings[bookings.length - 1].id : new Date().getTime();
         const paymentData = {
           passenger_name: user.name,
@@ -111,7 +104,6 @@ const PassengerDashboard = () => {
           status: "Paid",
           payment_date: new Date().toISOString(),
         };
-
         fetch(`${BASE_URL}/api/payments/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -120,6 +112,45 @@ const PassengerDashboard = () => {
           .then((res) => res.json())
           .then((data) => console.log("Payment saved:", data))
           .catch((err) => console.error("Payment error:", err));
+      }
+    }, 1000);
+  };
+
+  // Update booking seats
+  const handleUpdateBookingSeats = (booking) => {
+    const newSeats = parseInt(prompt("Enter new number of seats:", booking.seats)) || booking.seats;
+
+    // Update booking locally
+    const updatedBookings = bookings.map((b) =>
+      b.id === booking.id ? { ...b, seats: newSeats, price: booking.price / booking.seats * newSeats } : b
+    );
+    setBookings(updatedBookings);
+    localStorage.setItem("bookings", JSON.stringify(updatedBookings));
+
+    // Redirect to Stripe for dummy payment
+    const stripeLink = "https://buy.stripe.com/test_7sY28t91X6gegc8gDwcwg00";
+    const paymentWindow = window.open(stripeLink, "_blank");
+
+    const paymentCheck = setInterval(() => {
+      if (paymentWindow.closed) {
+        clearInterval(paymentCheck);
+        const updatedBooking = updatedBookings.find((b) => b.id === booking.id);
+        const paymentData = {
+          passenger_name: user.name,
+          shuttle_id: booking.shuttle_id,
+          booking_id: booking.id,
+          amount: updatedBooking.price,
+          status: "Paid",
+          payment_date: new Date().toISOString(),
+        };
+        fetch(`${BASE_URL}/api/payments/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(paymentData),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log("Payment updated:", data))
+          .catch((err) => console.error("Payment update error:", err));
       }
     }, 1000);
   };
@@ -201,86 +232,48 @@ const PassengerDashboard = () => {
 
         {/* BOOK SHUTTLES */}
         {activeTab === "book" && (
-          <>
-            {/* Search Section */}
-            <section className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Find a Shuttle</h2>
-              <div className="flex flex-wrap gap-4">
-                <input
-                  type="date"
-                  value={search.date}
-                  onChange={(e) => setSearch({ ...search, date: e.target.value })}
-                  className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={search.seats}
-                  onChange={(e) => setSearch({ ...search, seats: Number(e.target.value) })}
-                  className="flex-1 min-w-[100px] p-2 border border-gray-300 rounded-md"
-                />
-                <input
-                  type="text"
-                  placeholder="Origin"
-                  value={search.origin}
-                  onChange={(e) => setSearch({ ...search, origin: e.target.value })}
-                  className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-                />
-                <input
-                  type="text"
-                  placeholder="Destination"
-                  value={search.destination}
-                  onChange={(e) => setSearch({ ...search, destination: e.target.value })}
-                  className="flex-1 min-w-[150px] p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-            </section>
-
-            {/* Shuttle List */}
-            <section className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Available Shuttles</h2>
-              {error && <p className="text-red-500">{error}</p>}
-              {!error && filteredShuttles.length === 0 && <p className="text-gray-500">No shuttles match your search.</p>}
-              {filteredShuttles.map((shuttle) => (
-                <div
-                  key={shuttle.id}
-                  className="border border-gray-200 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
-                >
-                  <div>
-                    <div className="text-blue-700 font-semibold text-lg md:text-xl">{shuttle.route}</div>
-                    <div className="text-sm text-gray-600">{shuttle.date} • {shuttle.time} • {shuttle.duration}</div>
-                    <div className="text-sm text-gray-600">Pickup: {shuttle.pickup} • Seats: {shuttle.seats}</div>
-                    <div className="text-sm text-red-500">Departure in: {countdowns[shuttle.id]}</div>
-                  </div>
-                  <div className="text-right mt-2 md:mt-0">
-                    <div className="text-green-600 font-bold text-lg md:text-xl">ZAR {shuttle.price}</div>
-
-                    {/* Seats dropdown */}
-                    <select
-                      value={seatsSelection[shuttle.id] || 1}
-                      onChange={(e) =>
-                        setSeatsSelection({ ...seatsSelection, [shuttle.id]: Number(e.target.value) })
-                      }
-                      className="mt-2 border border-gray-300 rounded-md p-2"
-                    >
-                      {[...Array(Math.min(shuttle.seats, 10)).keys()].map((n) => (
-                        <option key={n + 1} value={n + 1}>
-                          {n + 1} seat{n > 0 ? "s" : ""}
-                        </option>
-                      ))}
-                    </select>
-
-                    <button
-                      onClick={() => handleBookShuttle(shuttle)}
-                      className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition block w-full"
-                    >
-                      Book
-                    </button>
-                  </div>
+          <section className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Available Shuttles</h2>
+            {error && <p className="text-red-500">{error}</p>}
+            {!error && filteredShuttles.length === 0 && <p className="text-gray-500">No shuttles match your search.</p>}
+            {filteredShuttles.map((shuttle) => (
+              <div
+                key={shuttle.id}
+                className="border border-gray-200 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
+              >
+                <div>
+                  <div className="text-blue-700 font-semibold text-lg md:text-xl">{shuttle.route}</div>
+                  <div className="text-sm text-gray-600">{shuttle.date} • {shuttle.time} • {shuttle.duration}</div>
+                  <div className="text-sm text-gray-600">Pickup: {shuttle.pickup} • Seats: {shuttle.seats}</div>
+                  <div className="text-sm text-red-500">Departure in: {countdowns[shuttle.id]}</div>
                 </div>
-              ))}
-            </section>
-          </>
+                <div className="text-right mt-2 md:mt-0">
+                  <div className="text-green-600 font-bold text-lg md:text-xl">ZAR {shuttle.price}</div>
+
+                  <select
+                    value={seatsSelection[shuttle.id] || 1}
+                    onChange={(e) =>
+                      setSeatsSelection({ ...seatsSelection, [shuttle.id]: Number(e.target.value) })
+                    }
+                    className="mt-2 border border-gray-300 rounded-md p-2"
+                  >
+                    {[...Array(Math.min(shuttle.seats, 10)).keys()].map((n) => (
+                      <option key={n + 1} value={n + 1}>
+                        {n + 1} seat{n > 0 ? "s" : ""}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={() => handleBookShuttle(shuttle)}
+                    className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition block w-full"
+                  >
+                    Book
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
         )}
 
         {/* MY BOOKINGS */}
@@ -289,11 +282,24 @@ const PassengerDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">My Bookings</h2>
             {bookings.length === 0 && <p className="text-gray-500">You have no bookings yet.</p>}
             {bookings.map((b) => (
-              <div key={b.id} className="border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center">
+              <div
+                key={b.id}
+                className="border border-gray-200 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center"
+              >
                 <div>
                   <div className="font-semibold text-lg">{b.route}</div>
                   <div className="text-sm text-gray-600">{b.date} • {b.time}</div>
-                  <div className="text-sm text-gray-600">Seats: {b.seats} • Price: ZAR {b.price}</div>
+                  <div className="text-sm text-gray-600">
+                    Seats: {b.seats} • Price: ZAR {b.price}
+                  </div>
+                </div>
+                <div className="mt-2 md:mt-0 flex flex-col md:flex-row gap-2">
+                  <button
+                    onClick={() => handleUpdateBookingSeats(b)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+                  >
+                    ✏️ Update Seats
+                  </button>
                 </div>
               </div>
             ))}
